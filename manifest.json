@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "dev.zenmi.netledger",
+  "name": "NetLedger",
+  "version": "1.0.0",
+  "author": "zenmi",
+  "license": "GPL-3.0",
+  "description": "System-wide process lineage bandwidth ledger with dual-tier time-series rollups and Quickshell UI.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "NetLedger",
+    "description": "Process lineage network bandwidth ledger",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 2,
+      "defaultRange": "24H",
+      "dbPath": "/var/lib/netledger/ledger.db"
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "number",
+        "label": "Poll Interval (seconds)",
+        "default": 2,
+        "min": 1,
+        "max": 10
+      },
+      {
+        "key": "defaultRange",
+        "type": "string",
+        "label": "Default Time Range",
+        "default": "24H",
+        "options": ["LIVE", "24H", "2D", "7D", "30D"]
+      },
+      {
+        "key": "dbPath",
+        "type": "string",
+        "label": "SQLite Database Path",
+        "default": "/var/lib/netledger/ledger.db"
+      }
+    ]
+  }
+}

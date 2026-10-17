@@ -1,0 +1,26 @@
+[Unit]
+Description=NetLedger Network Telemetry & Process Lineage Daemon
+Documentation=https://github.com/zenmi/NetLedger
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+StateDirectory=netledger
+StateDirectoryMode=0755
+ExecStartPre=/usr/bin/mkdir -p /var/lib/netledger
+ExecStartPre=/usr/bin/chmod 0755 /var/lib/netledger
+ExecStart=/usr/bin/python3 /usr/local/bin/netledgerd --db-path /var/lib/netledger/ledger.db --interval 2.0
+Restart=always
+RestartSec=3
+KillMode=process
+LimitNOFILE=65536
+
+# Sandboxing & Hardening
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
