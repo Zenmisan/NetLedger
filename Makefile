@@ -1,4 +1,4 @@
-.PHONY: all test dev install clean
+.PHONY: all test dev install install-service clean
 
 all: test
 
@@ -13,6 +13,9 @@ dev:
 
 install:
 	@./install.sh
+
+install-service:
+	@./install.sh --service
 
 clean:
 	rm -rf __pycache__ tests/__pycache__ daemon/__pycache__ *.pyc

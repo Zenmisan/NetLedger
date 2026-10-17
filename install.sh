@@ -45,18 +45,32 @@ else
     echo "[!] sqlite3 is required: sudo pacman -S sqlite"
 fi
 
-# 3. Systemd Daemon Service Installation instructions
+# 3. Systemd Daemon Service Installation
 echo ""
 echo "=========================================================="
 echo "  NetLedger Daemon (netledgerd) Setup"
 echo "=========================================================="
-echo "To install and start the background lineage collector daemon:"
-echo ""
-echo "  sudo cp \"${SCRIPT_DIR}/daemon/netledgerd.py\" /usr/local/bin/netledgerd"
-echo "  sudo chmod +x /usr/local/bin/netledgerd"
-echo "  sudo cp \"${SCRIPT_DIR}/daemon/netledgerd.service\" /etc/systemd/system/netledgerd.service"
-echo "  sudo systemctl daemon-reload"
-echo "  sudo systemctl enable --now netledgerd"
+
+if [ "${1:-}" = "--service" ] || [ "${2:-}" = "--service" ]; then
+    echo "[+] Installing and enabling netledgerd service (requires sudo)..."
+    sudo cp "${SCRIPT_DIR}/daemon/netledgerd.py" /usr/local/bin/netledgerd
+    sudo chmod +x /usr/local/bin/netledgerd
+    sudo cp "${SCRIPT_DIR}/daemon/netledgerd.service" /etc/systemd/system/netledgerd.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now netledgerd
+    echo "[✓] netledgerd is now enabled and running on boot!"
+else
+    echo "To enable netledgerd on boot automatically, run:"
+    echo "  ./install.sh --service"
+    echo ""
+    echo "Or run manually:"
+    echo "  sudo cp \"${SCRIPT_DIR}/daemon/netledgerd.py\" /usr/local/bin/netledgerd"
+    echo "  sudo chmod +x /usr/local/bin/netledgerd"
+    echo "  sudo cp \"${SCRIPT_DIR}/daemon/netledgerd.service\" /etc/systemd/system/netledgerd.service"
+    echo "  sudo systemctl daemon-reload"
+    echo "  sudo systemctl enable --now netledgerd"
+fi
+
 echo ""
 echo "To summon or view NetLedger in the Omarchy bar:"
 echo "  omarchy-shell shell summon ${PLUGIN_ID}"
