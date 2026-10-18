@@ -24,7 +24,7 @@ BarWidget {
   // Open / Close state contract for Omarchy bar
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
   readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
-  readonly property real openPanelIndicatorWidth: button.width
+  readonly property real openPanelIndicatorWidth: root.width
   readonly property real openPanelIndicatorHeight: Math.max(Style.space(10), Math.round(Style.bar.iconSlot * 0.55))
 
   function open() {
@@ -48,13 +48,14 @@ BarWidget {
     if (!target) return
     if ("bar" in target) target.bar = root.bar
     if ("settings" in target) target.settings = root.settings
-    if ("anchorItem" in target) target.anchorItem = button
+    if ("anchorItem" in target) target.anchorItem = root
     if ("hostWidget" in target) target.hostWidget = root
     if ("dbPath" in target) target.dbPath = root.dbPath
   }
 
-  implicitWidth: button.implicitWidth
-  implicitHeight: button.implicitHeight
+  visible: true
+  implicitWidth: Math.max(80, contentRow.implicitWidth + 16)
+  implicitHeight: root.barSize
 
   onBarChanged: injectPanel()
   onSettingsChanged: injectPanel()
@@ -122,77 +123,87 @@ BarWidget {
     function toggle() { root.togglePanel() }
   }
 
-  WidgetButton {
-    id: button
-    anchors.fill: parent
-    bar: root.bar
-    horizontalMargin: 8
-    verticalPadding: 4
+  RowLayout {
+    id: contentRow
+    spacing: 5
+    anchors.centerIn: parent
 
-    onPressed: function(b) {
-      if (b === Qt.LeftButton) root.togglePanel()
+    // Dynamic #1 Process badge if throughput > 100 KB/s (102400 B/s)
+    RowLayout {
+      visible: (root.rxRate + root.txRate) > 102400 && root.topProcess !== ""
+      spacing: 3
+
+      Text {
+        text: Model.categoryIcon(root.topCategory)
+        font.pixelSize: 11
+        color: root.bar ? root.bar.barForeground : Color.foreground
+      }
+
+      Text {
+        text: root.topProcess.length > 10 ? root.topProcess.substring(0, 8) + "…" : root.topProcess
+        font.pixelSize: 10
+        font.bold: true
+        color: root.bar ? root.bar.barForeground : Color.foreground
+        elide: Text.ElideRight
+      }
     }
 
-    contentItem: RowLayout {
-      id: contentRow
-      spacing: 6
-      anchors.centerIn: parent
+    // Network icon if throughput <= 100 KB/s
+    Text {
+      visible: (root.rxRate + root.txRate) <= 102400 || root.topProcess === ""
+      text: "⚡"
+      font.pixelSize: 10
+      color: root.bar ? root.bar.barForeground : Color.foreground
+    }
 
-      // Dynamic #1 Process badge if throughput > 100 KB/s (102400 B/s)
+    // Stacked Cyan Download and Amber Upload rates
+    ColumnLayout {
+      spacing: 0
+
       RowLayout {
-        visible: (root.rxRate + root.txRate) > 102400 && root.topProcess !== ""
-        spacing: 3
-
+        spacing: 2
         Text {
-          text: Model.categoryIcon(root.topCategory)
-          font.pixelSize: 11
-          color: root.bar ? root.bar.foreground : Color.foreground
-        }
-
-        Text {
-          text: root.topProcess.length > 12 ? root.topProcess.substring(0, 10) + "…" : root.topProcess
-          font.pixelSize: 10
+          text: "↓"
+          font.pixelSize: 9
           font.bold: true
-          color: root.bar ? root.bar.foreground : Color.foreground
-          elide: Text.ElideRight
+          color: root.cyanColor
+        }
+        Text {
+          text: Model.formatRate(root.rxRate)
+          font.pixelSize: 9
+          font.bold: true
+          color: root.cyanColor
         }
       }
 
-      // Stacked Cyan Download and Amber Upload rates
-      ColumnLayout {
-        spacing: 0
-
-        RowLayout {
-          spacing: 2
-          Text {
-            text: "↓"
-            font.pixelSize: 9
-            font.bold: true
-            color: root.cyanColor
-          }
-          Text {
-            text: Model.formatRate(root.rxRate)
-            font.pixelSize: 9
-            font.bold: true
-            color: root.cyanColor
-          }
+      RowLayout {
+        spacing: 2
+        Text {
+          text: "↑"
+          font.pixelSize: 9
+          font.bold: true
+          color: root.amberColor
         }
-
-        RowLayout {
-          spacing: 2
-          Text {
-            text: "↑"
-            font.pixelSize: 9
-            font.bold: true
-            color: root.amberColor
-          }
-          Text {
-            text: Model.formatRate(root.txRate)
-            font.pixelSize: 9
-            font.bold: true
-            color: root.amberColor
-          }
+        Text {
+          text: Model.formatRate(root.txRate)
+          font.pixelSize: 9
+          font.bold: true
+          color: root.amberColor
         }
+      }
+    }
+  }
+
+  MouseArea {
+    id: clickArea
+    anchors.fill: parent
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+    onClicked: function(mouse) {
+      if (mouse.button === Qt.LeftButton) {
+        root.togglePanel()
       }
     }
   }
